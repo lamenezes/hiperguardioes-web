@@ -33,6 +33,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='guardiandata',
             name='device',
-            field=models.ForeignKey(verbose_name='Device', to='guardioes.GuardianDevice'),
+            field=models.ForeignKey(verbose_name='Device', to='guardians.GuardianDevice'),
         ),
     ]

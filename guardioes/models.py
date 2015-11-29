@@ -14,14 +14,22 @@ class GuardianDevice(models.Model):
     node = models.ForeignKey(Node, verbose_name=_('Node'))
 
     def __repr__(self):
-        return "<GuardianDevice('{}')>".format(self.identifier)
+        return u"<GuardianDevice('{}')>".format(self.node.slug)
 
     def save(self, *args, **kwargs):
         if self.id is None:
             self.identifier = '{guardian_name}/{random_str}'.format(
-                                  guardian_name=slugify(self.node.name),
-                                  random_str=str(uuid.uuid4()).split('-')[-1])
+                guardian_name=slugify(self.node.name),
+                random_str=str(uuid.uuid4()).split('-')[-1])
         super(GuardianDevice, self).save(*args, **kwargs)
+
+    def latest_data(self):
+        try:
+            return GuardianData.objects.filter(device_id=self.pk) \
+                                       .order_by('-received_date') \
+                                       .values_list('data', flat=True)[0]
+        except IndexError:
+            return []
 
 
 class GuardianData(models.Model):
@@ -30,3 +38,11 @@ class GuardianData(models.Model):
     received_date = models.DateTimeField(_('Received Date'),
                                          default=datetime.datetime.now())
     data = JSONField(_('Data'))
+
+    def __repr__(self):
+        return u"<GuardianData('{}', '{}')".format(self.device.node.slug,
+                                                   self.collected_date)
+
+    def save(self, *args, **kwargs):
+        super(GuardianData, self).save(*args, **kwargs)
+        # TODO: change guardian status to active
